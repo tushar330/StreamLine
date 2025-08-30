@@ -4,17 +4,35 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import healthRoutes from "./routes/health.routes.js";
+import uploadsRoutes from "./routes/uploads.routes.js";
+import sessionsRoutes from "./routes/sessions.routes.js";
+import { presignPut } from "./services/s3.service.js";
 
 dotenv.config();
 const app = express();
 
 // middlewares
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"]
+}));
+
+// app.options('*', cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan("dev"));
 
+
 // routes
 app.use("/health", healthRoutes);
+app.use("/api/uploads", uploadsRoutes);
+app.use("/api/sessions", sessionsRoutes);
+
+
+presignPut({ Key: "test.txt", ContentType: "text/plain" })
+  .then(url => console.log(url))
+  .catch(err => console.error(err));
 
 // boot
 const PORT = process.env.PORT || 4000;
